@@ -1,141 +1,148 @@
-absl-py==2.1.0
-acres==0.3.0
-altair==5.4.1
-astunparse==1.6.3
-attrs==24.2.0
-audioread==3.0.1
-blinker==1.8.2
-cachetools==5.5.0
-certifi==2024.8.30
-cffi==1.17.1
-chardet==5.2.0
-charset-normalizer==3.4.0
-ci-info==0.3.0
-click==8.1.7
-colorama==0.4.6
-configobj==5.0.9
-configparser==7.2.0
-contourpy==1.3.1
-cycler==0.12.1
-decorator==4.4.2
-etelemetry==0.3.1
-ffmpeg-python==0.2.0
-filelock==3.16.1
-fitz==0.0.1.dev2
-Flask==3.0.3
-Flask-Cors==5.0.0
-Flask-SQLAlchemy==3.1.1
-flatbuffers==24.3.25
-fonttools==4.55.7
-fsspec==2024.9.0
-future==1.0.0
-gast==0.6.0
-gitdb==4.0.11
-GitPython==3.1.43
-google-pasta==0.2.0
-greenlet==3.2.0
-grpcio==1.67.0
-gunicorn==23.0.0
-h5py==3.12.1
-httplib2==0.22.0
-huggingface-hub==0.26.0
-idna==3.10
-imageio==2.36.0
-imageio-ffmpeg==0.5.1
-isodate==0.6.1
-itsdangerous==2.2.0
-Jinja2==3.1.4
-joblib==1.4.2
-jsonschema==4.23.0
-jsonschema-specifications==2024.10.1
-keras==3.6.0
-kiwisolver==1.4.8
-labelImg==1.8.6
-lazy_loader==0.4
-libclang==18.1.1
-librosa==0.10.2.post1
-llvmlite==0.43.0
-looseversion==1.3.0
-lxml==5.3.1
-Markdown==3.7
-markdown-it-py==3.0.0
-MarkupSafe==3.0.2
-matplotlib==3.10.0
-mdurl==0.1.2
-ml-dtypes==0.4.1
-moviepy==1.0.3
-msgpack==1.1.0
-namex==0.0.8
-narwhals==1.9.4
-networkx==3.4.2
-nibabel==5.3.2
-nipype==1.10.0
-numba==0.60.0
-numpy==1.26.4
-opencv-python==4.10.0.84
-opt_einsum==3.4.0
-optree==0.13.0
-packaging==24.1
-pandas==2.2.3
-pathlib==1.0.1
-pillow==10.4.0
-platformdirs==4.3.6
-pooch==1.8.2
-proglog==0.1.10
-protobuf==4.25.5
-prov==2.0.1
-puremagic==1.28
-pyarrow==17.0.0
-pycparser==2.22
-pydeck==0.9.1
-pydot==3.0.4
-Pygments==2.18.0
-pyparsing==3.2.1
-PyQt5==5.15.11
-PyQt5-Qt5==5.15.2
-PyQt5_sip==12.17.0
-pysrt==1.1.2
-python-dateutil==2.9.0.post0
-pytz==2024.2
-pyxnat==1.6.3
-PyYAML==6.0.2
-rdflib==6.3.2
-referencing==0.35.1
-regex==2024.9.11
-requests==2.32.3
-rich==13.9.2
-rpds-py==0.20.0
-safetensors==0.4.5
-scikit-learn==1.5.2
-scipy==1.14.1
-setuptools==75.2.0
-simplejson==3.20.1
-six==1.16.0
-smmap==5.0.1
-soundfile==0.12.1
-soxr==0.5.0.post1
-SQLAlchemy==2.0.40
-srt==3.5.3
-streamlit==1.39.0
-tenacity==9.0.0
-tensorboard==2.17.1
-tensorboard-data-server==0.7.2
-tensorflow==2.17.0
-termcolor==2.5.0
-threadpoolctl==3.5.0
-tokenizers==0.20.1
-toml==0.10.2
-tornado==6.4.1
-tqdm==4.66.5
-traits==7.0.2
-transformers==4.45.2
-typing_extensions==4.12.2
-tzdata==2024.2
-urllib3==2.2.3
-vosk==0.3.45
-watchdog==5.0.3
-websockets==13.1
-Werkzeug==3.0.4
-wheel==0.44.0
-wrapt==1.16.0
-yfinance==0.2.33  # or whatever version was installed
+# absl-py==2.1.0
+# acres==0.3.0
+# altair==5.4.1
+# astunparse==1.6.3
+# attrs==24.2.0
+# audioread==3.0.1
+# blinker==1.8.2
+# cachetools==5.5.0
+# certifi==2024.8.30
+# cffi==1.17.1
+# chardet==5.2.0
+# charset-normalizer==3.4.0
+# ci-info==0.3.0
+# click==8.1.7
+# colorama==0.4.6
+# configobj==5.0.9
+# configparser==7.2.0
+# contourpy==1.3.1
+# cycler==0.12.1
+# decorator==4.4.2
+# etelemetry==0.3.1
+# ffmpeg-python==0.2.0
+# filelock==3.16.1
+# fitz==0.0.1.dev2
+# Flask==3.0.3
+# Flask-Cors==5.0.0
+# Flask-SQLAlchemy==3.1.1
+# flatbuffers==24.3.25
+# fonttools==4.55.7
+# fsspec==2024.9.0
+# future==1.0.0
+# gast==0.6.0
+# gitdb==4.0.11
+# GitPython==3.1.43
+# google-pasta==0.2.0
+# greenlet==3.2.0
+# grpcio==1.67.0
+# gunicorn==23.0.0
+# h5py==3.12.1
+# httplib2==0.22.0
+# huggingface-hub==0.26.0
+# idna==3.10
+# imageio==2.36.0
+# imageio-ffmpeg==0.5.1
+# isodate==0.6.1
+# itsdangerous==2.2.0
+# Jinja2==3.1.4
+# joblib==1.4.2
+# jsonschema==4.23.0
+# jsonschema-specifications==2024.10.1
+# keras==3.6.0
+# kiwisolver==1.4.8
+# labelImg==1.8.6
+# lazy_loader==0.4
+# libclang==18.1.1
+# librosa==0.10.2.post1
+# llvmlite==0.43.0
+# looseversion==1.3.0
+# lxml==5.3.1
+# Markdown==3.7
+# markdown-it-py==3.0.0
+# MarkupSafe==3.0.2
+# matplotlib==3.10.0
+# mdurl==0.1.2
+# ml-dtypes==0.4.1
+# moviepy==1.0.3
+# msgpack==1.1.0
+# namex==0.0.8
+# narwhals==1.9.4
+# networkx==3.4.2
+# nibabel==5.3.2
+# nipype==1.10.0
+# numba==0.60.0
+# numpy==1.26.4
+# opencv-python==4.10.0.84
+# opt_einsum==3.4.0
+# optree==0.13.0
+# packaging==24.1
+# pandas==2.2.3
+# pathlib==1.0.1
+# pillow==10.4.0
+# platformdirs==4.3.6
+# pooch==1.8.2
+# proglog==0.1.10
+# protobuf==4.25.5
+# prov==2.0.1
+# puremagic==1.28
+# pyarrow==17.0.0
+# pycparser==2.22
+# pydeck==0.9.1
+# pydot==3.0.4
+# Pygments==2.18.0
+# pyparsing==3.2.1
+# PyQt5==5.15.11
+# PyQt5-Qt5==5.15.2
+# PyQt5_sip==12.17.0
+# pysrt==1.1.2
+# python-dateutil==2.9.0.post0
+# pytz==2024.2
+# pyxnat==1.6.3
+# PyYAML==6.0.2
+# rdflib==6.3.2
+# referencing==0.35.1
+# regex==2024.9.11
+# requests==2.32.3
+# rich==13.9.2
+# rpds-py==0.20.0
+# safetensors==0.4.5
+# scikit-learn==1.5.2
+# scipy==1.14.1
+# setuptools==75.2.0
+# simplejson==3.20.1
+# six==1.16.0
+# smmap==5.0.1
+# soundfile==0.12.1
+# soxr==0.5.0.post1
+# SQLAlchemy==2.0.40
+# srt==3.5.3
+# streamlit==1.39.0
+# tenacity==9.0.0
+# tensorboard==2.17.1
+# tensorboard-data-server==0.7.2
+# tensorflow==2.17.0
+# termcolor==2.5.0
+# threadpoolctl==3.5.0
+# tokenizers==0.20.1
+# toml==0.10.2
+# tornado==6.4.1
+# tqdm==4.66.5
+# traits==7.0.2
+# transformers==4.45.2
+# typing_extensions==4.12.2
+# tzdata==2024.2
+# urllib3==2.2.3
+# vosk==0.3.45
+# watchdog==5.0.3
+# websockets==13.1
+# Werkzeug==3.0.4
+# wheel==0.44.0
+# wrapt==1.16.0
+# yfinance==0.2.33  # or whatever version was installed
+
+flask
+flask_sqlalchemy
+flask_cors
+gunicorn
+pandas
+yfinance
