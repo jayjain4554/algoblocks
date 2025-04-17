@@ -138,3 +138,4 @@ websockets==13.1
 Werkzeug==3.0.4
 wheel==0.44.0
 wrapt==1.16.0
+yfinance==0.2.33  # or whatever version was installed
