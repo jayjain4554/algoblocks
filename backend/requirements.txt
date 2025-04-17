@@ -1,0 +1,6 @@
+Flask==2.2.5
+Flask-Cors==3.0.10
+yfinance==0.2.33
+pandas==2.2.1
+SQLAlchemy==2.0.25
+gunicorn==21.2.0
