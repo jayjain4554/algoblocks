@@ -1,0 +1,8 @@
+# .gitignore
+frontend/node_modules/
+frontend/dist/
+backend/venv/
+*.pyc
+__pycache__/
+.env
+algoblocks.db
