@@ -20,10 +20,21 @@ import {
   LinearScale,
   PointElement,
   Legend,
-  Tooltip,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend);
+
+// ✅ Utility: Max Drawdown
+function getMaxDrawdown(arr) {
+  if (!arr.length) return NaN;
+  let peak = arr[0];
+  let maxDD = 0;
+  for (let i = 1; i < arr.length; i++) {
+    peak = Math.max(peak, arr[i]);
+    maxDD = Math.min(maxDD, arr[i] / peak - 1);
+  }
+  return Math.abs(maxDD);
+}
 
 export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
@@ -34,12 +45,8 @@ export default function Strategies() {
   const [loadingId, setLoadingId] = useState(null);
 
   const fetchStrategies = async () => {
-    try {
-      const res = await axios.get("https://algoblocks.onrender.com/strategies");
-      setStrategies(res.data);
-    } catch (err) {
-      console.error("Error fetching strategies:", err);
-    }
+    const res = await axios.get("https://algoblocks.onrender.com/strategies");
+    setStrategies(res.data);
   };
 
   const deleteStrategy = async (id) => {
@@ -58,7 +65,7 @@ export default function Strategies() {
       setNewName("");
       fetchStrategies();
     } catch (err) {
-      console.error("Rename failed:", err);
+      console.error("❌ Rename failed:", err);
     }
   };
 
@@ -66,40 +73,23 @@ export default function Strategies() {
     try {
       setLoadingId(strategy.id);
       const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
-      const result = res.data;
-
-      const market = result.cumulative_market || [];
-      const strategyReturns = result.cumulative_strategy || [];
-      const timestamps = result.timestamps || [];
-
-      const totalReturn = strategyReturns.length
-        ? strategyReturns[strategyReturns.length - 1] - 1
-        : NaN;
-
-      let maxDrawdown = NaN;
-      if (strategyReturns.length) {
-        let peak = strategyReturns[0];
-        maxDrawdown = 0;
-        for (const val of strategyReturns) {
-          if (val > peak) peak = val;
-          const dd = (peak - val) / peak;
-          if (dd > maxDrawdown) maxDrawdown = dd;
-        }
-      }
 
       setBacktestData((prev) => ({
         ...prev,
         [strategy.id]: {
-          strategy: strategyReturns,
-          market: market,
-          dates: timestamps,
-          sharpe_ratio: result.sharpe ?? NaN,
-          total_return: totalReturn,
-          max_drawdown: maxDrawdown,
+          market: res.data.cumulative_market || [],
+          strategy: res.data.cumulative_strategy || [],
+          dates: res.data.timestamps || [],
+          sharpe_ratio: res.data.sharpe ?? NaN,
+          total_return:
+            res.data.cumulative_strategy?.length > 0
+              ? res.data.cumulative_strategy.at(-1) - 1
+              : NaN,
+          max_drawdown: getMaxDrawdown(res.data.cumulative_strategy || []),
         },
       }));
     } catch (err) {
-      console.error("Backtest failed:", err);
+      console.error("Backtest failed", err);
     } finally {
       setLoadingId(null);
     }
@@ -221,7 +211,7 @@ export default function Strategies() {
                       </button>
                     </div>
 
-                    {data && data.dates && (
+                    {data && data.dates?.length > 0 && (
                       <div className="mt-6">
                         <Line
                           data={{
@@ -231,13 +221,13 @@ export default function Strategies() {
                                 label: "Strategy",
                                 data: data.strategy,
                                 borderColor: "green",
-                                pointRadius: 2,
+                                fill: false,
                               },
                               {
                                 label: "Market",
                                 data: data.market,
                                 borderColor: "gray",
-                                pointRadius: 2,
+                                fill: false,
                               },
                             ],
                           }}
