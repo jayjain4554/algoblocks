@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { BookMarked, Trash2, Pencil, BarChart2 } from "lucide-react";
+import {
+  BookMarked,
+  Trash2,
+  Pencil,
+  LineChart,
+  Download,
+  ShieldCheck,
+  Target,
+  Brain,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -8,18 +19,18 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
-  Tooltip,
   Legend,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend);
 
 export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
-  const [expandedId, setExpandedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [newName, setNewName] = useState("");
-  const [backtestResults, setBacktestResults] = useState({});
+  const [expandedId, setExpandedId] = useState(null);
+  const [backtestData, setBacktestData] = useState({});
+  const [loadingId, setLoadingId] = useState(null);
 
   const fetchStrategies = async () => {
     const res = await axios.get("https://algoblocks.onrender.com/strategies");
@@ -42,21 +53,30 @@ export default function Strategies() {
       setNewName("");
       fetchStrategies();
     } catch (err) {
-      console.error("Rename failed:", err);
+      console.error("❌ Rename failed:", err);
     }
   };
 
-  const runBacktest = async (id, config) => {
+  const runBacktest = async (strategy) => {
     try {
-      const res = await axios.post("https://algoblocks.onrender.com/backtest", config);
-      setBacktestResults((prev) => ({
-        ...prev,
-        [id]: res.data,
-      }));
-      setExpandedId(id);
+      setLoadingId(strategy.id);
+      const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
+      setBacktestData((prev) => ({ ...prev, [strategy.id]: res.data }));
+      setLoadingId(null);
     } catch (err) {
-      console.error("Backtest error:", err);
+      console.error("Backtest failed", err);
+      setLoadingId(null);
     }
+  };
+
+  const exportJSON = (strategy) => {
+    const blob = new Blob([JSON.stringify(strategy, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${strategy.name || "strategy"}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -73,44 +93,46 @@ export default function Strategies() {
       {strategies.length === 0 ? (
         <p className="text-gray-400 italic">No strategies found.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-6">
           {strategies.map((s) => {
-            const result = backtestResults[s.id];
-            const show = expandedId === s.id;
+            const isExpanded = expandedId === s.id;
+            const data = backtestData[s.id];
+
             return (
-              <li key={s.id} className="border rounded-md p-4 shadow-sm">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    {editingId === s.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          value={newName}
-                          onChange={(e) => setNewName(e.target.value)}
-                          className="border p-1 rounded text-sm"
-                        />
-                        <button
-                          onClick={() => renameStrategy(s.id)}
-                          className="text-green-500 hover:text-green-700 text-xs"
-                        >
-                          ✅ Save
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <h3 className="text-lg font-semibold">{s.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {s.config.blocks.map((b) => b.label).join(", ")}
-                        </p>
-                      </>
-                    )}
-                  </div>
+              <li key={s.id} className="border rounded-lg p-4 shadow-sm">
+                <div className="flex justify-between items-start">
+                  {editingId === s.id ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="border p-1 rounded text-sm"
+                      />
+                      <button
+                        onClick={() => renameStrategy(s.id)}
+                        className="text-green-500 hover:text-green-700 text-xs"
+                      >
+                        ✅ Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-lg font-semibold">{s.name}</h3>
+                      <p className="text-sm text-gray-500">
+                        {s.config?.blocks?.map((b) => b.label).join(", ")}
+                      </p>
+                      <button
+                        className="text-blue-500 text-sm underline mt-1"
+                        onClick={() =>
+                          setExpandedId(isExpanded ? null : s.id)
+                        }
+                      >
+                        {isExpanded ? "Hide Details" : "Show Details"}
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => runBacktest(s.id, s.config)}
-                      className="text-blue-500 hover:text-blue-600"
-                    >
-                      <BarChart2 className="w-4 h-4" />
-                    </button>
                     <button
                       onClick={() => {
                         setEditingId(s.id);
@@ -129,34 +151,107 @@ export default function Strategies() {
                   </div>
                 </div>
 
-                {show && result && (
-                  <div className="mt-4 bg-slate-100 rounded p-4">
-                    <p className="text-sm mb-1">📊 Strategy Performance</p>
-                    <Line
-                      data={{
-                        labels: result.timestamps,
-                        datasets: [
-                          {
-                            label: "Market",
-                            data: result.cumulative_market,
-                            borderColor: "gray",
-                            tension: 0.3,
-                          },
-                          {
-                            label: "Strategy",
-                            data: result.cumulative_strategy,
-                            borderColor: "blue",
-                            tension: 0.3,
-                          },
-                        ],
-                      }}
-                      height={100}
-                    />
-                    <div className="mt-4 space-y-1 text-sm">
-                      <p>📈 Sharpe Ratio: <strong>{isNaN(result.sharpe) ? "N/A" : result.sharpe.toFixed(2)}</strong></p>
-                      <p>💰 Total Return: <strong>{result.cumulative_strategy ? ((result.cumulative_strategy.slice(-1)[0] - 1) * 100).toFixed(2) + "%" : "N/A"}</strong></p>
-                      <p>📉 Max Drawdown: <strong>N/A (Coming Soon)</strong></p>
+                {isExpanded && (
+                  <div className="bg-slate-100 mt-4 p-4 rounded">
+                    <p className="font-semibold flex items-center gap-1 mb-1">
+                      📦 <span>Blocks:</span>
+                    </p>
+                    <ul className="list-disc ml-6 text-sm mb-3">
+                      {s.config.blocks.map((b, i) => (
+                        <li key={i}>{b.label}</li>
+                      ))}
+                    </ul>
+                    <p className="flex items-center text-sm text-sky-700">
+                      <ShieldCheck className="w-4 h-4 mr-1" /> Stop Loss:{" "}
+                      {s.config.stop_loss * 100}%
+                    </p>
+                    <p className="flex items-center text-sm text-pink-700">
+                      <Target className="w-4 h-4 mr-1" /> Take Profit:{" "}
+                      {s.config.take_profit * 100}%
+                    </p>
+
+                    <div className="flex items-center gap-4 mt-4">
+                      <button
+                        onClick={() => runBacktest(s)}
+                        disabled={loadingId === s.id}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded flex items-center gap-1"
+                      >
+                        <LineChart className="w-4 h-4" />
+                        {loadingId === s.id ? "Running..." : "Run Backtest"}
+                      </button>
+                      <button
+                        onClick={() => exportJSON(s)}
+                        className="bg-gray-200 text-gray-800 px-3 py-1 rounded flex items-center gap-1"
+                      >
+                        <Download className="w-4 h-4" /> Export JSON
+                      </button>
                     </div>
+
+                    {/* ✅ Backtest Chart and Metrics */}
+                    {data?.timestamps && (
+                      <div className="mt-6">
+                        <Line
+                          data={{
+                            labels: data.timestamps,
+                            datasets: [
+                              {
+                                label: "Strategy",
+                                data: data.cumulative_strategy,
+                                borderColor: "green",
+                                fill: false,
+                              },
+                              {
+                                label: "Market",
+                                data: data.cumulative_market,
+                                borderColor: "gray",
+                                fill: false,
+                              },
+                            ],
+                          }}
+                          options={{
+                            responsive: true,
+                            plugins: {
+                              legend: {
+                                position: "top",
+                              },
+                            },
+                          }}
+                        />
+
+                        <div className="mt-4 text-sm text-gray-700 space-y-1">
+                          <p className="flex items-center gap-2 text-purple-700 font-semibold">
+                            <Brain className="w-4 h-4" />
+                            Performance:
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4" />
+                            Sharpe Ratio:{" "}
+                            {isNaN(data.sharpe)
+                              ? "N/A"
+                              : data.sharpe.toFixed(2)}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            💰 Total Return:{" "}
+                            {isNaN(data.cumulative_strategy?.at(-1))
+                              ? "N/A"
+                              : (
+                                  (data.cumulative_strategy.at(-1) - 1) * 100
+                                ).toFixed(2) + "%"}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <TrendingDown className="w-4 h-4" />
+                            Max Drawdown:{" "}
+                            {data.cumulative_strategy
+                              ? (
+                                  (Math.max(...data.cumulative_strategy) -
+                                    Math.min(...data.cumulative_strategy)) /
+                                  Math.max(...data.cumulative_strategy)
+                                ).toFixed(2) * 100 + "%"
+                              : "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </li>
