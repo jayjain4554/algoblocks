@@ -12,7 +12,7 @@ export default function Simulate() {
   };
 
   const handleSubmit = async () => {
-    const res = await axios.post('http://algoblocks-66vv.vercel.app/simulate', config);
+    const res = await axios.post('https://algoblocks-66vv.vercel.app/simulate', config);
     const formatted = res.data.timestamps.map((t, i) => ({
       time: t,
       portfolio: res.data.portfolio_value[i]
