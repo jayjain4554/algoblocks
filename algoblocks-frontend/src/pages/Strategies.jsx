@@ -20,9 +20,10 @@ import {
   LinearScale,
   PointElement,
   Legend,
+  Tooltip,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip);
 
 export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
@@ -33,8 +34,12 @@ export default function Strategies() {
   const [loadingId, setLoadingId] = useState(null);
 
   const fetchStrategies = async () => {
-    const res = await axios.get("https://algoblocks.onrender.com/strategies");
-    setStrategies(res.data);
+    try {
+      const res = await axios.get("https://algoblocks.onrender.com/strategies");
+      setStrategies(res.data);
+    } catch (err) {
+      console.error("Error fetching strategies:", err);
+    }
   };
 
   const deleteStrategy = async (id) => {
@@ -53,7 +58,7 @@ export default function Strategies() {
       setNewName("");
       fetchStrategies();
     } catch (err) {
-      console.error("❌ Rename failed:", err);
+      console.error("Rename failed:", err);
     }
   };
 
@@ -61,10 +66,41 @@ export default function Strategies() {
     try {
       setLoadingId(strategy.id);
       const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
-      setBacktestData((prev) => ({ ...prev, [strategy.id]: res.data }));
-      setLoadingId(null);
+      const result = res.data;
+
+      const market = result.cumulative_market || [];
+      const strategyReturns = result.cumulative_strategy || [];
+      const timestamps = result.timestamps || [];
+
+      const totalReturn = strategyReturns.length
+        ? strategyReturns[strategyReturns.length - 1] - 1
+        : NaN;
+
+      let maxDrawdown = NaN;
+      if (strategyReturns.length) {
+        let peak = strategyReturns[0];
+        maxDrawdown = 0;
+        for (const val of strategyReturns) {
+          if (val > peak) peak = val;
+          const dd = (peak - val) / peak;
+          if (dd > maxDrawdown) maxDrawdown = dd;
+        }
+      }
+
+      setBacktestData((prev) => ({
+        ...prev,
+        [strategy.id]: {
+          strategy: strategyReturns,
+          market: market,
+          dates: timestamps,
+          sharpe_ratio: result.sharpe ?? NaN,
+          total_return: totalReturn,
+          max_drawdown: maxDrawdown,
+        },
+      }));
     } catch (err) {
-      console.error("Backtest failed", err);
+      console.error("Backtest failed:", err);
+    } finally {
       setLoadingId(null);
     }
   };
@@ -123,9 +159,7 @@ export default function Strategies() {
                       </p>
                       <button
                         className="text-blue-500 text-sm underline mt-1"
-                        onClick={() =>
-                          setExpandedId(isExpanded ? null : s.id)
-                        }
+                        onClick={() => setExpandedId(isExpanded ? null : s.id)}
                       >
                         {isExpanded ? "Hide Details" : "Show Details"}
                       </button>
@@ -187,24 +221,23 @@ export default function Strategies() {
                       </button>
                     </div>
 
-                    {/* ✅ Backtest Chart and Metrics */}
-                    {data?.timestamps && (
+                    {data && data.dates && (
                       <div className="mt-6">
                         <Line
                           data={{
-                            labels: data.timestamps,
+                            labels: data.dates,
                             datasets: [
                               {
                                 label: "Strategy",
-                                data: data.cumulative_strategy,
+                                data: data.strategy,
                                 borderColor: "green",
-                                fill: false,
+                                pointRadius: 2,
                               },
                               {
                                 label: "Market",
-                                data: data.cumulative_market,
+                                data: data.market,
                                 borderColor: "gray",
-                                fill: false,
+                                pointRadius: 2,
                               },
                             ],
                           }}
@@ -226,28 +259,22 @@ export default function Strategies() {
                           <p className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4" />
                             Sharpe Ratio:{" "}
-                            {isNaN(data.sharpe)
+                            {isNaN(data.sharpe_ratio)
                               ? "N/A"
-                              : data.sharpe.toFixed(2)}
+                              : data.sharpe_ratio.toFixed(2)}
                           </p>
                           <p className="flex items-center gap-2">
                             💰 Total Return:{" "}
-                            {isNaN(data.cumulative_strategy?.at(-1))
+                            {isNaN(data.total_return)
                               ? "N/A"
-                              : (
-                                  (data.cumulative_strategy.at(-1) - 1) * 100
-                                ).toFixed(2) + "%"}
+                              : (data.total_return * 100).toFixed(2) + "%"}
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingDown className="w-4 h-4" />
                             Max Drawdown:{" "}
-                            {data.cumulative_strategy
-                              ? (
-                                  (Math.max(...data.cumulative_strategy) -
-                                    Math.min(...data.cumulative_strategy)) /
-                                  Math.max(...data.cumulative_strategy)
-                                ).toFixed(2) * 100 + "%"
-                              : "N/A"}
+                            {isNaN(data.max_drawdown)
+                              ? "N/A"
+                              : (data.max_drawdown * 100).toFixed(2) + "%"}
                           </p>
                         </div>
                       </div>
