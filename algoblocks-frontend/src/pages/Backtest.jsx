@@ -64,7 +64,7 @@ export default function Backtest() {
   const [metrics, setMetrics] = useState({ sharpe: null, winRate: null, drawdown: null });
 
   const runBacktest = async () => {
-    const res = await axios.post("http://localhost:5000/backtest", {
+    const res = await axios.post("http://algoblocks-66vv.vercel.app/backtest", {
       ticker, ma_period: maPeriod, use_macd: useMacd, use_bollinger: useBollinger
     });
     const { cumulative_market, cumulative_strategy, timestamps, sharpe, win_rate, drawdown } = res.data;

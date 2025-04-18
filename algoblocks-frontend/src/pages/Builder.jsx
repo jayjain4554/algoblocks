@@ -55,7 +55,7 @@ export default function Builder() {
   ];
 
   const saveStrategy = async () => {
-    await axios.post("http://localhost:5000/strategies", {
+    await axios.post("http://algoblocks-66vv.vercel.app/strategies", {
       name: strategyName,
       config: { blocks, stop_loss: stopLoss / 100, take_profit: takeProfit / 100 }
     });
