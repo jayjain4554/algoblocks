@@ -20,14 +20,19 @@ export default function Strategies() {
   };
 
   const renameStrategy = async (id) => {
-    await axios.put(`https://algoblocks.onrender.com/strategies/${id}`, {
-      name: newName,
-    });
-    setEditingId(null);
-    setNewName("");
-    fetchStrategies(); // refresh list
+    try {
+      console.log("🔄 Renaming strategy:", id, newName);
+      await axios.put(`https://algoblocks.onrender.com/strategies/${id}`, {
+        name: newName,
+      });
+      setEditingId(null);
+      setNewName("");
+      fetchStrategies(); // Refresh list after renaming
+    } catch (err) {
+      console.error("❌ Rename failed:", err);
+    }
   };
-
+  
   useEffect(() => {
     fetchStrategies();
   }, []);
