@@ -20,11 +20,10 @@ import {
   LinearScale,
   PointElement,
   Legend,
+  Tooltip,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend);
-
-// [same import statements as before]
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend, Tooltip);
 
 export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
@@ -63,11 +62,23 @@ export default function Strategies() {
     try {
       setLoadingId(strategy.id);
       const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
-      console.log("✅ Server response:", res.data);
-      setBacktestData((prev) => ({ ...prev, [strategy.id]: res.data }));
+      const { cumulative_market, cumulative_strategy, timestamps, sharpe, total_return, max_drawdown } = res.data;
+
+      setBacktestData((prev) => ({
+        ...prev,
+        [strategy.id]: {
+          dates: timestamps,
+          strategy: cumulative_strategy,
+          market: cumulative_market,
+          sharpe_ratio: sharpe,
+          total_return: total_return,
+          max_drawdown: max_drawdown,
+        },
+      }));
+
+      setLoadingId(null);
     } catch (err) {
-      console.error("❌ Backtest failed", err);
-    } finally {
+      console.error("Backtest failed", err);
       setLoadingId(null);
     }
   };
@@ -126,9 +137,7 @@ export default function Strategies() {
                       </p>
                       <button
                         className="text-blue-500 text-sm underline mt-1"
-                        onClick={() =>
-                          setExpandedId(isExpanded ? null : s.id)
-                        }
+                        onClick={() => setExpandedId(isExpanded ? null : s.id)}
                       >
                         {isExpanded ? "Hide Details" : "Show Details"}
                       </button>
@@ -188,11 +197,11 @@ export default function Strategies() {
                       </button>
                     </div>
 
-                    {data && data.timestamps && data.strategy?.length > 0 && (
+                    {data && data.dates && data.strategy && data.market && (
                       <div className="mt-6">
                         <Line
                           data={{
-                            labels: data.timestamps,
+                            labels: data.dates,
                             datasets: [
                               {
                                 label: "Strategy",
@@ -211,30 +220,31 @@ export default function Strategies() {
                           options={{
                             responsive: true,
                             plugins: {
-                              legend: { position: "top" },
-                            },
-                            elements: {
-                              point: { radius: 1 },
+                              legend: {
+                                position: "top",
+                              },
                             },
                           }}
                         />
 
                         <div className="mt-4 text-sm text-gray-700 space-y-1">
                           <p className="flex items-center gap-2 text-purple-700 font-semibold">
-                            <Brain className="w-4 h-4" /> Performance:
+                            <Brain className="w-4 h-4" />
+                            Performance:
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4" />
-                            Sharpe Ratio: {isNaN(data.sharpe) ? "N/A" : data.sharpe}
+                            Sharpe Ratio:{" "}
+                            {isNaN(data.sharpe_ratio) ? "N/A" : data.sharpe_ratio}
                           </p>
                           <p className="flex items-center gap-2">
                             💰 Total Return:{" "}
-                            {isNaN(data.total_return) ? "N/A" : (data.total_return * 100).toFixed(2) + "%"}
+                            {isNaN(data.total_return) ? "N/A" : data.total_return + "%"}
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingDown className="w-4 h-4" />
                             Max Drawdown:{" "}
-                            {isNaN(data.max_drawdown) ? "N/A" : (data.max_drawdown * 100).toFixed(2) + "%"}
+                            {isNaN(data.max_drawdown) ? "N/A" : data.max_drawdown + "%"}
                           </p>
                         </div>
                       </div>
