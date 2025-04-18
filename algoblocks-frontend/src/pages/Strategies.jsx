@@ -24,18 +24,6 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Legend);
 
-// ✅ Utility: Max Drawdown
-function getMaxDrawdown(arr) {
-  if (!arr.length) return NaN;
-  let peak = arr[0];
-  let maxDD = 0;
-  for (let i = 1; i < arr.length; i++) {
-    peak = Math.max(peak, arr[i]);
-    maxDD = Math.min(maxDD, arr[i] / peak - 1);
-  }
-  return Math.abs(maxDD);
-}
-
 export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -73,24 +61,21 @@ export default function Strategies() {
     try {
       setLoadingId(strategy.id);
       const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
-
+      const response = res.data;
       setBacktestData((prev) => ({
         ...prev,
         [strategy.id]: {
-          market: res.data.cumulative_market || [],
-          strategy: res.data.cumulative_strategy || [],
-          dates: res.data.timestamps || [],
-          sharpe_ratio: res.data.sharpe ?? NaN,
-          total_return:
-            res.data.cumulative_strategy?.length > 0
-              ? res.data.cumulative_strategy.at(-1) - 1
-              : NaN,
-          max_drawdown: getMaxDrawdown(res.data.cumulative_strategy || []),
+          strategy: response.cumulative_strategy,
+          market: response.cumulative_market,
+          dates: response.timestamps,
+          sharpe: response.sharpe,
+          total_return: response.total_return,
+          max_drawdown: response.max_drawdown,
         },
       }));
+      setLoadingId(null);
     } catch (err) {
       console.error("Backtest failed", err);
-    } finally {
       setLoadingId(null);
     }
   };
@@ -145,11 +130,13 @@ export default function Strategies() {
                     <div>
                       <h3 className="text-lg font-semibold">{s.name}</h3>
                       <p className="text-sm text-gray-500">
-                        {s.config?.blocks?.map((b) => b.label).join(", ")}
+                        {(s.config?.blocks || []).map((b) => b.label).join(", ")}
                       </p>
                       <button
                         className="text-blue-500 text-sm underline mt-1"
-                        onClick={() => setExpandedId(isExpanded ? null : s.id)}
+                        onClick={() =>
+                          setExpandedId(isExpanded ? null : s.id)
+                        }
                       >
                         {isExpanded ? "Hide Details" : "Show Details"}
                       </button>
@@ -181,17 +168,17 @@ export default function Strategies() {
                       📦 <span>Blocks:</span>
                     </p>
                     <ul className="list-disc ml-6 text-sm mb-3">
-                      {s.config.blocks.map((b, i) => (
+                      {s.config?.blocks?.map((b, i) => (
                         <li key={i}>{b.label}</li>
                       ))}
                     </ul>
                     <p className="flex items-center text-sm text-sky-700">
                       <ShieldCheck className="w-4 h-4 mr-1" /> Stop Loss:{" "}
-                      {s.config.stop_loss * 100}%
+                      {s.config?.stop_loss * 100}%
                     </p>
                     <p className="flex items-center text-sm text-pink-700">
                       <Target className="w-4 h-4 mr-1" /> Take Profit:{" "}
-                      {s.config.take_profit * 100}%
+                      {s.config?.take_profit * 100}%
                     </p>
 
                     <div className="flex items-center gap-4 mt-4">
@@ -211,7 +198,7 @@ export default function Strategies() {
                       </button>
                     </div>
 
-                    {data && data.dates?.length > 0 && (
+                    {data && data.dates && data.strategy && data.market && (
                       <div className="mt-6">
                         <Line
                           data={{
@@ -249,15 +236,18 @@ export default function Strategies() {
                           <p className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4" />
                             Sharpe Ratio:{" "}
-                            {isNaN(data.sharpe_ratio)
+                            {isNaN(data.sharpe)
                               ? "N/A"
-                              : data.sharpe_ratio.toFixed(2)}
+                              : data.sharpe.toFixed(2)}
                           </p>
                           <p className="flex items-center gap-2">
                             💰 Total Return:{" "}
-                            {isNaN(data.total_return)
-                              ? "N/A"
-                              : (data.total_return * 100).toFixed(2) + "%"}
+                            {data.strategy && data.strategy.length > 0
+                              ? (
+                                  (data.strategy[data.strategy.length - 1] - 1) *
+                                  100
+                                ).toFixed(2) + "%"
+                              : "N/A"}
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingDown className="w-4 h-4" />
