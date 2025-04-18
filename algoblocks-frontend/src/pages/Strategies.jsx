@@ -6,6 +6,7 @@ export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [newName, setNewName] = useState("");
+  const [expandedId, setExpandedId] = useState(null); // ✅ for show/hide
 
   const fetchStrategies = async () => {
     const res = await axios.get("https://algoblocks.onrender.com/strategies");
@@ -27,12 +28,12 @@ export default function Strategies() {
       });
       setEditingId(null);
       setNewName("");
-      fetchStrategies(); // Refresh list after renaming
+      fetchStrategies();
     } catch (err) {
       console.error("❌ Rename failed:", err);
     }
   };
-  
+
   useEffect(() => {
     fetchStrategies();
   }, []);
@@ -51,9 +52,9 @@ export default function Strategies() {
           {strategies.map((s) => (
             <li
               key={s.id}
-              className="border rounded-md p-4 shadow-sm flex justify-between items-center"
+              className="border rounded-md p-4 shadow-sm"
             >
-              <div>
+              <div className="flex justify-between items-center">
                 {editingId === s.id ? (
                   <div className="flex items-center gap-2">
                     <input
@@ -70,31 +71,54 @@ export default function Strategies() {
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-lg font-semibold">{s.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {s.config.blocks.map((b) => b.label).join(", ")}
-                    </p>
+                    <div>
+                      <h3 className="text-lg font-semibold">{s.name}</h3>
+                      <p className="text-sm text-gray-500">
+                        {s.config.blocks.map((b) => b.label).join(", ")}
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          setEditingId(s.id);
+                          setNewName(s.name);
+                        }}
+                        className="text-yellow-500 hover:text-yellow-600"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteStrategy(s.id)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
 
-              <div className="flex gap-3">
+              {/* ✅ Show/hide strategy details */}
+              <div className="mt-2">
                 <button
-                  onClick={() => {
-                    setEditingId(s.id);
-                    setNewName(s.name);
-                  }}
-                  className="text-yellow-500 hover:text-yellow-600"
+                  className="text-blue-500 text-sm underline"
+                  onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}
                 >
-                  <Pencil className="w-4 h-4" />
+                  {expandedId === s.id ? "Hide Details" : "Show Details"}
                 </button>
 
-                <button
-                  onClick={() => deleteStrategy(s.id)}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {expandedId === s.id && (
+                  <div className="bg-slate-100 mt-2 p-3 rounded text-sm">
+                    <p><strong>📦 Blocks:</strong></p>
+                    <ul className="list-disc ml-5 mb-2">
+                      {s.config.blocks.map((b, i) => (
+                        <li key={i}>{b.label}</li>
+                      ))}
+                    </ul>
+                    <p>🛡️ Stop Loss: {s.config.stop_loss * 100}%</p>
+                    <p>🎯 Take Profit: {s.config.take_profit * 100}%</p>
+                  </div>
+                )}
               </div>
             </li>
           ))}
