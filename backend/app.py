@@ -214,12 +214,17 @@ def get_strategies():
 @app.route("/strategies/<int:id>", methods=["DELETE"])
 def delete_strategy(id):
     try:
-        strategy = Strategy.query.get_or_404(id)
+        strategy = Strategy.query.get(id)
+        if not strategy:
+            return jsonify({"error": "Strategy not found"}), 404
+        
         db.session.delete(strategy)
         db.session.commit()
         return jsonify({"status": "deleted"})
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     print("🚀 Launching Flask with DB init")
