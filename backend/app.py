@@ -160,8 +160,14 @@ import os
 
 app = Flask(__name__)
 CORS(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///algoblocks.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+
+@app.route("/")
+def home():
+    return "Hello, Flask is running!"
 
 @app.route("/backtest", methods=["POST"])
 def backtest():
@@ -185,26 +191,36 @@ def simulate():
 def save_strategy():
     try:
         data = request.get_json()
-        print("📥 Received data:", data)
-
         name = data.get("name")
         config = data.get("config")
-
         strategy = Strategy(name=name, config=config)
         db.session.add(strategy)
         db.session.commit()
-
         return jsonify({"status": "success"})
-    
     except Exception as e:
-        print("🔥 ERROR saving strategy:", str(e))
         return jsonify({"error": str(e)}), 500
 
-@app.route("/")
-def home():
-    return "Hello, Flask is running!"
+@app.route("/strategies", methods=["GET"])
+def get_strategies():
+    try:
+        strategies = Strategy.query.all()
+        return jsonify([
+            {"id": s.id, "name": s.name, "config": s.config}
+            for s in strategies
+        ])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# ✅ Only one __main__ block that includes DB creation
+@app.route("/strategies/<int:id>", methods=["DELETE"])
+def delete_strategy(id):
+    try:
+        strategy = Strategy.query.get_or_404(id)
+        db.session.delete(strategy)
+        db.session.commit()
+        return jsonify({"status": "deleted"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     print("🚀 Launching Flask with DB init")
     with app.app_context():
