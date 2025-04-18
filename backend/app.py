@@ -106,13 +106,35 @@ def simulate():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/strategies", methods=["POST"])
+# @app.route("/strategies", methods=["POST"])
+# def save_strategy():
+#     data = request.json
+#     strategy = Strategy(name=data['name'], config=data['config'])
+#     db.session.add(strategy)
+#     db.session.commit()
+#     return jsonify({'status': 'success'})
+
+@app.route('/strategies', methods=['POST'])
 def save_strategy():
-    data = request.json
-    strategy = Strategy(name=data['name'], config=data['config'])
-    db.session.add(strategy)
-    db.session.commit()
-    return jsonify({'status': 'success'})
+    try:
+        data = request.get_json()
+        print("📥 Received data:", data)
+
+        name = data.get("name")
+        config = data.get("config")
+        print("✅ Parsed name:", name)
+        print("✅ Parsed config:", config)
+
+        strategy = Strategy(name=name, config=config)
+        db.session.add(strategy)
+        db.session.commit()
+
+        return jsonify({"status": "success"})
+    
+    except Exception as e:
+        print("🔥 ERROR saving strategy:", str(e))
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/")
 def home():
