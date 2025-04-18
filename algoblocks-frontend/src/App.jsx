@@ -83,9 +83,10 @@ import { Routes, Route, Link } from 'react-router-dom';
 import Builder from './pages/Builder';
 import Backtest from './pages/Backtest';
 import Simulate from './pages/Simulate';
+import Strategies from './pages/Strategies'; // ✅ Make sure this path is correct
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Cpu, BarChart, Activity } from 'lucide-react';
+import { Cpu, BarChart, Activity, BookOpen } from 'lucide-react'; // ✅ Import new icon
 
 export default function App() {
   return (
@@ -106,6 +107,9 @@ export default function App() {
           <Link to="/builder" className="flex items-center gap-1 px-4 py-2 rounded-md hover:bg-slate-100">
             <Cpu className="w-4 h-4" /> Strategy Builder
           </Link>
+          <Link to="/strategies" className="flex items-center gap-1 px-4 py-2 rounded-md hover:bg-slate-100">
+            <BookOpen className="w-4 h-4" /> Saved Strategies
+          </Link>
         </nav>
 
         <main className="max-w-5xl mx-auto">
@@ -113,6 +117,7 @@ export default function App() {
             <Route path="/" element={<Backtest />} />
             <Route path="/simulate" element={<Simulate />} />
             <Route path="/builder" element={<Builder />} />
+            <Route path="/strategies" element={<Strategies />} />
           </Routes>
         </main>
       </div>
