@@ -55,12 +55,22 @@ export default function Builder() {
   ];
 
   const saveStrategy = async () => {
-    await axios.post("http://algoblocks.onrender.com/strategies", {
-      name: strategyName,
-      config: { blocks, stop_loss: stopLoss / 100, take_profit: takeProfit / 100 }
-    });
-    alert("Strategy saved!");
+    try {
+      await axios.post("https://algoblocks.onrender.com/strategies", {
+        name: strategyName,
+        config: {
+          blocks,
+          stop_loss: stopLoss / 100,
+          take_profit: takeProfit / 100
+        }
+      });
+      alert("✅ Strategy saved successfully!");
+    } catch (err) {
+      console.error("🔥 Error saving strategy:", err);
+      alert("Failed to save strategy. Check console.");
+    }
   };
+  
 
   return (
     <div className="bg-white p-6 shadow-xl rounded-lg">
