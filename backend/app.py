@@ -204,12 +204,12 @@ def save_strategy():
 def get_strategies():
     try:
         strategies = Strategy.query.all()
-        return jsonify([
-            {"id": s.id, "name": s.name, "config": s.config}
-            for s in strategies
-        ])
+        result = [{"id": s.id, "name": s.name, "config": s.config} for s in strategies]
+        return jsonify(result)
     except Exception as e:
+        print("🔥 ERROR fetching strategies:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/strategies/<int:id>", methods=["DELETE"])
 def delete_strategy(id):
