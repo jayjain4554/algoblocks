@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { BookMarked, Trash2, Pencil } from "lucide-react";
+import { BookMarked, Trash2, Pencil, LineChart } from "lucide-react";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend } from "chart.js";
+
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
 export default function Strategies() {
   const [strategies, setStrategies] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [newName, setNewName] = useState("");
-  const [expandedId, setExpandedId] = useState(null); // ✅ for show/hide
+  const [expandedId, setExpandedId] = useState(null);
+  const [chartData, setChartData] = useState({}); // holds chart data for strategy
 
   const fetchStrategies = async () => {
     const res = await axios.get("https://algoblocks.onrender.com/strategies");
@@ -22,7 +27,6 @@ export default function Strategies() {
 
   const renameStrategy = async (id) => {
     try {
-      console.log("🔄 Renaming strategy:", id, newName);
       await axios.put(`https://algoblocks.onrender.com/strategies/${id}`, {
         name: newName,
       });
@@ -32,6 +36,41 @@ export default function Strategies() {
     } catch (err) {
       console.error("❌ Rename failed:", err);
     }
+  };
+
+  const runBacktest = async (config, id) => {
+    try {
+      const payload = {
+        ticker: "AAPL", // you can enhance this later
+        ma_period: 20,
+        use_macd: config.blocks.some(b => b.id === "macd"),
+        use_bollinger: config.blocks.some(b => b.id === "bollinger")
+      };
+      const res = await axios.post("https://algoblocks.onrender.com/backtest", payload);
+      setChartData(prev => ({
+        ...prev,
+        [id]: {
+          labels: res.data.timestamps,
+          datasets: [
+            {
+              label: "Strategy",
+              data: res.data.cumulative_strategy,
+              borderColor: "green",
+              fill: false,
+            },
+            {
+              label: "Market",
+              data: res.data.cumulative_market,
+              borderColor: "gray",
+              fill: false,
+            }
+          ]
+        }
+      }));
+    } catch (err) {
+        console.error("❌ Backtest failed:", err);
+        alert("Backtest failed");
+      }
   };
 
   useEffect(() => {
@@ -50,10 +89,7 @@ export default function Strategies() {
       ) : (
         <ul className="space-y-4">
           {strategies.map((s) => (
-            <li
-              key={s.id}
-              className="border rounded-md p-4 shadow-sm"
-            >
+            <li key={s.id} className="border rounded-md p-4 shadow-sm">
               <div className="flex justify-between items-center">
                 {editingId === s.id ? (
                   <div className="flex items-center gap-2">
@@ -98,7 +134,6 @@ export default function Strategies() {
                 )}
               </div>
 
-              {/* ✅ Show/hide strategy details */}
               <div className="mt-2">
                 <button
                   className="text-blue-500 text-sm underline"
@@ -117,6 +152,19 @@ export default function Strategies() {
                     </ul>
                     <p>🛡️ Stop Loss: {s.config.stop_loss * 100}%</p>
                     <p>🎯 Take Profit: {s.config.take_profit * 100}%</p>
+
+                    <button
+                      onClick={() => runBacktest(s.config, s.id)}
+                      className="mt-4 text-sm bg-blue-500 text-white px-3 py-1 rounded flex items-center gap-2"
+                    >
+                      <LineChart className="w-4 h-4" /> Run Backtest
+                    </button>
+
+                    {chartData[s.id] && (
+                      <div className="mt-4">
+                        <Line data={chartData[s.id]} options={{ responsive: true }} />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
