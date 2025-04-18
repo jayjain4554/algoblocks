@@ -36,7 +36,7 @@
 
 
 import React, { useState } from "react";
-import DropZone from "../components/dropzoner";
+import Dropzoner from "../components/dropzoner";  // ✅ fixed casing here
 import Block from "../components/Block";
 import axios from "axios";
 
@@ -66,8 +66,18 @@ export default function Builder() {
     <div className="bg-white p-6 shadow-xl rounded-lg">
       <h2 className="text-xl font-semibold mb-4">🧱 Strategy Builder</h2>
       <div className="mb-4">
-        <input value={strategyName} onChange={e => setStrategyName(e.target.value)} className="border p-2 rounded mr-2" placeholder="Strategy Name" />
-        <button onClick={saveStrategy} className="bg-blue-500 text-white px-4 py-2 rounded">💾 Save</button>
+        <input
+          value={strategyName}
+          onChange={e => setStrategyName(e.target.value)}
+          className="border p-2 rounded mr-2"
+          placeholder="Strategy Name"
+        />
+        <button
+          onClick={saveStrategy}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          💾 Save
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -78,16 +88,32 @@ export default function Builder() {
           ))}
         </div>
 
-        <DropZoner blocks={blocks} setBlocks={setBlocks} />
+        <Dropzoner blocks={blocks} setBlocks={setBlocks} /> {/* ✅ updated here */}
 
         <div>
           <h3 className="font-semibold mb-2">⚙️ Risk Settings</h3>
-          <label>Stop Loss (%)
-            <input type="range" min="0" max="20" value={stopLoss} onChange={e => setStopLoss(+e.target.value)} className="w-full" />
+          <label>
+            Stop Loss (%)
+            <input
+              type="range"
+              min="0"
+              max="20"
+              value={stopLoss}
+              onChange={e => setStopLoss(+e.target.value)}
+              className="w-full"
+            />
             <div>{stopLoss}%</div>
           </label>
-          <label className="mt-4 block">Take Profit (%)
-            <input type="range" min="0" max="50" value={takeProfit} onChange={e => setTakeProfit(+e.target.value)} className="w-full" />
+          <label className="mt-4 block">
+            Take Profit (%)
+            <input
+              type="range"
+              min="0"
+              max="50"
+              value={takeProfit}
+              onChange={e => setTakeProfit(+e.target.value)}
+              className="w-full"
+            />
             <div>{takeProfit}%</div>
           </label>
         </div>
