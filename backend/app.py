@@ -225,6 +225,23 @@ def delete_strategy(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/strategies/<int:id>", methods=["PUT"])
+def rename_strategy(id):
+    try:
+        data = request.get_json()
+        new_name = data.get("name")
+
+        strategy = Strategy.query.get(id)
+        if not strategy:
+            return jsonify({"error": "Strategy not found"}), 404
+
+        strategy.name = new_name
+        db.session.commit()
+        return jsonify({"status": "renamed", "new_name": new_name})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     print("🚀 Launching Flask with DB init")
