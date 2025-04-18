@@ -108,7 +108,7 @@ export default function App() {
             <Cpu className="w-4 h-4" /> Strategy Builder
           </Link>
           <Link to="/strategies" className="flex items-center gap-1 px-4 py-2 rounded-md hover:bg-slate-100">
-            <BookOpen className="w-4 h-4" /> Saved Strategies
+            📚 Saved Strategies
           </Link>
         </nav>
 
