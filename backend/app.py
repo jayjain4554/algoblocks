@@ -76,6 +76,81 @@
 #     port = int(os.environ.get("PORT", 5000))
 #     app.run(host="0.0.0.0", port=port, debug=False)
 
+# from flask import Flask, request, jsonify
+# from flask_cors import CORS
+# from strategies.backtester import run_backtest
+# from strategies.simulator import simulate_realtime
+# from database import db, Strategy
+# import os
+
+# app = Flask(__name__)
+# CORS(app)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///algoblocks.db'
+# db.init_app(app)
+
+# @app.route("/backtest", methods=["POST"])
+# def backtest():
+#     try:
+#         data = request.get_json()
+#         result = run_backtest(data)
+#         return jsonify(result)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+# @app.route("/simulate", methods=["POST"])
+# def simulate():
+#     try:
+#         config = request.json
+#         result = simulate_realtime(config)
+#         return jsonify(result)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+# # @app.route("/strategies", methods=["POST"])
+# # def save_strategy():
+# #     data = request.json
+# #     strategy = Strategy(name=data['name'], config=data['config'])
+# #     db.session.add(strategy)
+# #     db.session.commit()
+# #     return jsonify({'status': 'success'})
+
+# @app.route('/strategies', methods=['POST'])
+# def save_strategy():
+#     try:
+#         data = request.get_json()
+#         print("📥 Received data:", data)
+
+#         name = data.get("name")
+#         config = data.get("config")
+#         print("✅ Parsed name:", name)
+#         print("✅ Parsed config:", config)
+
+#         strategy = Strategy(name=name, config=config)
+#         db.session.add(strategy)
+#         db.session.commit()
+
+#         return jsonify({"status": "success"})
+    
+#     except Exception as e:
+#         print("🔥 ERROR saving strategy:", str(e))
+#         return jsonify({"error": str(e)}), 500
+
+
+# @app.route("/")
+# def home():
+#     return "Hello, Flask is running!"
+
+# # 🔥 DO NOT remove or modify this block — it's what Render depends on:
+# if __name__ == "__main__":
+#     port = int(os.environ.get("PORT", 5000))
+#     app.run(host="0.0.0.0", port=port)
+
+# if __name__ == "__main__":
+#     with app.app_context():
+#         db.create_all()
+#     app.run(host="0.0.0.0", port=7777)
+
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from strategies.backtester import run_backtest
@@ -100,21 +175,13 @@ def backtest():
 @app.route("/simulate", methods=["POST"])
 def simulate():
     try:
-        config = request.json
+        config = request.get_json()
         result = simulate_realtime(config)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# @app.route("/strategies", methods=["POST"])
-# def save_strategy():
-#     data = request.json
-#     strategy = Strategy(name=data['name'], config=data['config'])
-#     db.session.add(strategy)
-#     db.session.commit()
-#     return jsonify({'status': 'success'})
-
-@app.route('/strategies', methods=['POST'])
+@app.route("/strategies", methods=["POST"])
 def save_strategy():
     try:
         data = request.get_json()
@@ -122,8 +189,6 @@ def save_strategy():
 
         name = data.get("name")
         config = data.get("config")
-        print("✅ Parsed name:", name)
-        print("✅ Parsed config:", config)
 
         strategy = Strategy(name=name, config=config)
         db.session.add(strategy)
@@ -135,17 +200,14 @@ def save_strategy():
         print("🔥 ERROR saving strategy:", str(e))
         return jsonify({"error": str(e)}), 500
 
-
 @app.route("/")
 def home():
     return "Hello, Flask is running!"
 
-# 🔥 DO NOT remove or modify this block — it's what Render depends on:
+# ✅ Only one __main__ block that includes DB creation
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
-if __name__ == "__main__":
+    print("🚀 Launching Flask with DB init")
     with app.app_context():
         db.create_all()
-    app.run(host="0.0.0.0", port=7777)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
