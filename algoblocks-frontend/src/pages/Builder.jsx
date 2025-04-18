@@ -36,7 +36,7 @@
 
 
 import React, { useState } from "react";
-import Dropzoner from "../components/dropzoner";  // ✅ fixed casing here
+import Dropzoner from "../components/dropzoner"; // ✅ Casing OK
 import Block from "../components/Block";
 import axios from "axios";
 
@@ -56,7 +56,7 @@ export default function Builder() {
 
   const saveStrategy = async () => {
     try {
-      await axios.post("https://algoblocks.onrender.com/strategies", {
+      const response = await axios.post("https://algoblocks.onrender.com/strategies", {
         name: strategyName,
         config: {
           blocks,
@@ -64,13 +64,13 @@ export default function Builder() {
           take_profit: takeProfit / 100
         }
       });
+      console.log("✅ Server response:", response.data);
       alert("✅ Strategy saved successfully!");
     } catch (err) {
       console.error("🔥 Error saving strategy:", err);
-      alert("Failed to save strategy. Check console.");
+      alert("❌ Failed to save strategy. See console for details.");
     }
   };
-  
 
   return (
     <div className="bg-white p-6 shadow-xl rounded-lg">
@@ -98,7 +98,7 @@ export default function Builder() {
           ))}
         </div>
 
-        <Dropzoner blocks={blocks} setBlocks={setBlocks} /> {/* ✅ updated here */}
+        <Dropzoner blocks={blocks} setBlocks={setBlocks} />
 
         <div>
           <h3 className="font-semibold mb-2">⚙️ Risk Settings</h3>
