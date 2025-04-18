@@ -8,5 +8,5 @@ __pycache__/
 *.pyc
 
 # Secrets
-*.env
+#*.env
 algoblocks.db
