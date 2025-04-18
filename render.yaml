@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: algoblocks-backend
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python -c "from app import db, app; with app.app_context(): db.create_all()"
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+    autoDeploy: true
+    repo: https://github.com/jayjain4554/algoblocks
+    branch: main
+    buildFilter:
+      paths:
+        - backend/**
+    rootDir: backend
