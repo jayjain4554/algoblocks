@@ -36,7 +36,7 @@
 
 
 import React, { useState } from "react";
-import DropZone from "../components/dropzone";
+import DropZone from "../components/dropzoner";
 import Block from "../components/Block";
 import axios from "axios";
 
@@ -78,7 +78,7 @@ export default function Builder() {
           ))}
         </div>
 
-        <DropZone blocks={blocks} setBlocks={setBlocks} />
+        <DropZoner blocks={blocks} setBlocks={setBlocks} />
 
         <div>
           <h3 className="font-semibold mb-2">⚙️ Risk Settings</h3>
