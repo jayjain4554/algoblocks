@@ -51,10 +51,10 @@ def run_backtest(config):
     total_return = round((cumulative_strategy.iloc[-1] - 1) * 100, 2)
 
     return {
-        "cumulative_market": df['CumulativeMarket'].tolist(),
-        "cumulative_strategy": cumulative_strategy.tolist(),
+        "market": df['CumulativeMarket'].tolist(),
+        "strategy": cumulative_strategy.tolist(),
         "sharpe": sharpe,
-        "max_drawdown": max_drawdown,
-        "total_return": total_return,
+        "max_drawdown": max_drawdown / 100 if max_drawdown is not None else None,
+        "total_return": total_return / 100 if total_return is not None else None,
         "timestamps": df.index.strftime('%Y-%m-%d').tolist()
     }
