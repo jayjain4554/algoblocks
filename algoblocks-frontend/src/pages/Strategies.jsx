@@ -71,9 +71,29 @@ export default function Strategies() {
   const runBacktest = async (strategy) => {
     try {
       setLoadingId(strategy.id);
+  
+      console.log("📤 Sending config to backtest:", strategy.config);
+  
       const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
-      const { cumulative_market, cumulative_strategy, timestamps, sharpe, total_return, max_drawdown } = res.data;
-
+  
+      console.log("✅ Backtest raw response:", res.data);
+  
+      const {
+        cumulative_market,
+        cumulative_strategy,
+        timestamps,
+        sharpe,
+        total_return,
+        max_drawdown,
+      } = res.data;
+  
+      // Handle missing or malformed data
+      if (!timestamps || !cumulative_market || !cumulative_strategy) {
+        console.warn("❌ Missing backtest data. Not updating chart.");
+        alert("Backtest returned incomplete data. Please check the strategy config or try again.");
+        return;
+      }
+  
       setBacktestData((prev) => ({
         ...prev,
         [strategy.id]: {
@@ -87,10 +107,12 @@ export default function Strategies() {
       }));
     } catch (err) {
       console.error("Backtest failed:", err);
+      alert("An error occurred while running the backtest. Check the console for details.");
     } finally {
       setLoadingId(null);
     }
   };
+  
 
   const exportJSON = (strategy) => {
     const blob = new Blob([JSON.stringify(strategy, null, 2)], { type: "application/json" });
