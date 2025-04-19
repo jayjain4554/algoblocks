@@ -34,27 +34,37 @@ export default function Strategies() {
   const [loadingId, setLoadingId] = useState(null);
 
   const fetchStrategies = async () => {
-    const res = await axios.get("https://algoblocks.onrender.com/strategies");
-    setStrategies(res.data);
+    try {
+      const res = await axios.get("https://algoblocks.onrender.com/strategies");
+      setStrategies(res.data);
+    } catch (err) {
+      console.error("Failed to fetch strategies:", err);
+    }
   };
 
   const deleteStrategy = async (id) => {
     if (window.confirm("Delete this strategy?")) {
-      await axios.delete(`https://algoblocks.onrender.com/strategies/${id}`);
-      setStrategies((prev) => prev.filter((s) => s.id !== id));
+      try {
+        await axios.delete(`https://algoblocks.onrender.com/strategies/${id}`);
+        setStrategies((prev) => prev.filter((s) => s.id !== id));
+      } catch (err) {
+        console.error("Delete failed:", err);
+      }
     }
   };
 
   const renameStrategy = async (id) => {
+    if (!newName.trim()) return alert("Strategy name cannot be empty.");
+
     try {
       await axios.put(`https://algoblocks.onrender.com/strategies/${id}`, {
-        name: newName,
+        name: newName.trim(),
       });
       setEditingId(null);
       setNewName("");
       fetchStrategies();
     } catch (err) {
-      console.error("❌ Rename failed:", err);
+      console.error("Rename failed:", err);
     }
   };
 
@@ -75,10 +85,9 @@ export default function Strategies() {
           max_drawdown: max_drawdown,
         },
       }));
-
-      setLoadingId(null);
     } catch (err) {
-      console.error("Backtest failed", err);
+      console.error("Backtest failed:", err);
+    } finally {
       setLoadingId(null);
     }
   };
@@ -123,6 +132,7 @@ export default function Strategies() {
                         className="border p-1 rounded text-sm"
                       />
                       <button
+                        type="button"
                         onClick={() => renameStrategy(s.id)}
                         className="text-green-500 hover:text-green-700 text-xs"
                       >
@@ -136,6 +146,7 @@ export default function Strategies() {
                         {s.config?.blocks?.map((b) => b.label).join(", ")}
                       </p>
                       <button
+                        type="button"
                         className="text-blue-500 text-sm underline mt-1"
                         onClick={() => setExpandedId(isExpanded ? null : s.id)}
                       >
@@ -146,6 +157,7 @@ export default function Strategies() {
 
                   <div className="flex gap-3">
                     <button
+                      type="button"
                       onClick={() => {
                         setEditingId(s.id);
                         setNewName(s.name);
@@ -155,6 +167,7 @@ export default function Strategies() {
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => deleteStrategy(s.id)}
                       className="text-red-500 hover:text-red-600"
                     >
@@ -169,19 +182,22 @@ export default function Strategies() {
                       📦 <span>Blocks:</span>
                     </p>
                     <ul className="list-disc ml-6 text-sm mb-3">
-                      {s.config.blocks.map((b, i) => (
+                      {s.config?.blocks?.map((b, i) => (
                         <li key={i}>{b.label}</li>
                       ))}
                     </ul>
                     <p className="flex items-center text-sm text-sky-700">
-                      <ShieldCheck className="w-4 h-4 mr-1" /> Stop Loss: {s.config.stop_loss * 100}%
+                      <ShieldCheck className="w-4 h-4 mr-1" />
+                      Stop Loss: {(s.config?.stop_loss * 100).toFixed(2)}%
                     </p>
                     <p className="flex items-center text-sm text-pink-700">
-                      <Target className="w-4 h-4 mr-1" /> Take Profit: {s.config.take_profit * 100}%
+                      <Target className="w-4 h-4 mr-1" />
+                      Take Profit: {(s.config?.take_profit * 100).toFixed(2)}%
                     </p>
 
                     <div className="flex items-center gap-4 mt-4">
                       <button
+                        type="button"
                         onClick={() => runBacktest(s)}
                         disabled={loadingId === s.id}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded flex items-center gap-1"
@@ -190,6 +206,7 @@ export default function Strategies() {
                         {loadingId === s.id ? "Running..." : "Run Backtest"}
                       </button>
                       <button
+                        type="button"
                         onClick={() => exportJSON(s)}
                         className="bg-gray-200 text-gray-800 px-3 py-1 rounded flex items-center gap-1"
                       >
@@ -197,7 +214,7 @@ export default function Strategies() {
                       </button>
                     </div>
 
-                    {data && data.dates && data.strategy && data.market && (
+                    {data?.dates && data?.strategy && data?.market && (
                       <div className="mt-6">
                         <Line
                           data={{
@@ -234,17 +251,16 @@ export default function Strategies() {
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4" />
-                            Sharpe Ratio:{" "}
-                            {isNaN(data.sharpe_ratio) ? "N/A" : data.sharpe_ratio}
+                            Sharpe Ratio: {isNaN(data.sharpe_ratio) ? "N/A" : data.sharpe_ratio.toFixed(2)}
                           </p>
                           <p className="flex items-center gap-2">
                             💰 Total Return:{" "}
-                            {isNaN(data.total_return) ? "N/A" : data.total_return + "%"}
+                            {isNaN(data.total_return) ? "N/A" : data.total_return.toFixed(2) + "%"}
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingDown className="w-4 h-4" />
                             Max Drawdown:{" "}
-                            {isNaN(data.max_drawdown) ? "N/A" : data.max_drawdown + "%"}
+                            {isNaN(data.max_drawdown) ? "N/A" : data.max_drawdown.toFixed(2) + "%"}
                           </p>
                         </div>
                       </div>
