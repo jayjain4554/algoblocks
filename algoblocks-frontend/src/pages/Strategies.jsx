@@ -68,51 +68,92 @@ export default function Strategies() {
     }
   };
 
+  const debugStrategyConfig = (config) => {
+    console.log("Strategy config:", config);
+    
+    // Check for required fields
+    const requiredFields = ["blocks", "stop_loss", "take_profit"];
+    const missingFields = requiredFields.filter(field => config[field] === undefined);
+    
+    if (missingFields.length > 0) {
+      console.warn("Missing required fields:", missingFields);
+    }
+    
+    // Check blocks structure
+    if (config.blocks && Array.isArray(config.blocks)) {
+      console.log("Blocks count:", config.blocks.length);
+      config.blocks.forEach((block, index) => {
+        if (!block.label) {
+          console.warn(`Block ${index} missing label`);
+        }
+      });
+    } else {
+      console.warn("Blocks is not an array or is missing");
+    }
+  };
+
   const runBacktest = async (strategy) => {
     try {
       setLoadingId(strategy.id);
-  
+      
+      // Debug the strategy config
+      debugStrategyConfig(strategy.config);
+      
       console.log("📤 Sending config to backtest:", strategy.config);
-  
+
       const res = await axios.post("https://algoblocks.onrender.com/backtest", strategy.config);
-  
       console.log("✅ Backtest raw response:", res.data);
-  
-      const {
-        cumulative_market,
-        cumulative_strategy,
-        timestamps,
-        sharpe,
-        total_return,
-        max_drawdown,
-      } = res.data;
-  
-      // Handle missing or malformed data
-      if (!timestamps || !cumulative_market || !cumulative_strategy) {
+
+      // Make sure we have the expected data structure
+      const responseData = res.data;
+      
+      // Create default values if data is missing
+      const timestamps = responseData.timestamps || [];
+      const cumulative_market = responseData.cumulative_market || [];
+      const cumulative_strategy = responseData.cumulative_strategy || [];
+      const sharpe = responseData.sharpe || 0;
+      const total_return = responseData.total_return || 0;
+      const max_drawdown = responseData.max_drawdown || 0;
+
+      // Check if we have enough data to render a chart
+      if (timestamps.length === 0 || cumulative_strategy.length === 0) {
         console.warn("❌ Missing backtest data. Not updating chart.");
         alert("Backtest returned incomplete data. Please check the strategy config or try again.");
         return;
       }
-  
+
+      // Make sure the arrays have the same length
+      const minLength = Math.min(
+        timestamps.length,
+        cumulative_market.length,
+        cumulative_strategy.length
+      );
+      
       setBacktestData((prev) => ({
         ...prev,
         [strategy.id]: {
-          dates: timestamps,
-          strategy: cumulative_strategy,
-          market: cumulative_market,
+          dates: timestamps.slice(0, minLength),
+          strategy: cumulative_strategy.slice(0, minLength),
+          market: cumulative_market.slice(0, minLength),
           sharpe_ratio: sharpe,
           total_return: total_return,
           max_drawdown: max_drawdown,
         },
       }));
+      
+      console.log("Chart data prepared successfully");
     } catch (err) {
       console.error("Backtest failed:", err);
-      alert("An error occurred while running the backtest. Check the console for details.");
+      if (err.response) {
+        console.error("Error response:", err.response.data);
+        alert(`Backtest error: ${err.response.data.message || "Unknown server error"}`);
+      } else {
+        alert("An error occurred while running the backtest. Check the console for details.");
+      }
     } finally {
       setLoadingId(null);
     }
   };
-  
 
   const exportJSON = (strategy) => {
     const blob = new Blob([JSON.stringify(strategy, null, 2)], { type: "application/json" });
@@ -236,7 +277,7 @@ export default function Strategies() {
                       </button>
                     </div>
 
-                    {data?.dates && data?.strategy && data?.market && (
+                    {data?.dates && data?.strategy && (
                       <div className="mt-6">
                         <Line
                           data={{
@@ -247,12 +288,14 @@ export default function Strategies() {
                                 data: data.strategy,
                                 borderColor: "green",
                                 fill: false,
+                                tension: 0.1,
                               },
                               {
                                 label: "Market",
-                                data: data.market,
+                                data: data.market || Array(data.strategy.length).fill(0),
                                 borderColor: "gray",
                                 fill: false,
+                                tension: 0.1,
                               },
                             ],
                           }}
@@ -262,6 +305,25 @@ export default function Strategies() {
                               legend: {
                                 position: "top",
                               },
+                              tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                              },
+                            },
+                            scales: {
+                              x: {
+                                ticks: {
+                                  maxTicksLimit: 10,
+                                  maxRotation: 0,
+                                },
+                              },
+                              y: {
+                                ticks: {
+                                  callback: function(value) {
+                                    return value.toFixed(2);
+                                  }
+                                }
+                              }
                             },
                           }}
                         />
@@ -273,16 +335,16 @@ export default function Strategies() {
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4" />
-                            Sharpe Ratio: {isNaN(data.sharpe_ratio) ? "N/A" : data.sharpe_ratio.toFixed(2)}
+                            Sharpe Ratio: {isNaN(data.sharpe_ratio) || data.sharpe_ratio === undefined ? "N/A" : data.sharpe_ratio.toFixed(2)}
                           </p>
                           <p className="flex items-center gap-2">
                             💰 Total Return:{" "}
-                            {isNaN(data.total_return) ? "N/A" : data.total_return.toFixed(2) + "%"}
+                            {isNaN(data.total_return) || data.total_return === undefined ? "N/A" : data.total_return.toFixed(2) + "%"}
                           </p>
                           <p className="flex items-center gap-2">
                             <TrendingDown className="w-4 h-4" />
                             Max Drawdown:{" "}
-                            {isNaN(data.max_drawdown) ? "N/A" : data.max_drawdown.toFixed(2) + "%"}
+                            {isNaN(data.max_drawdown) || data.max_drawdown === undefined ? "N/A" : data.max_drawdown.toFixed(2) + "%"}
                           </p>
                         </div>
                       </div>
